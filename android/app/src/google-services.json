@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "874676108309",
+    "project_id": "addfindcustomer",
+    "storage_bucket": "addfindcustomer.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:874676108309:android:6160ffbd4b4ad9f55d621c",
+        "android_client_info": {
+          "package_name": "com.example.findaddcustomer"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCEnRDHsOyELg3P5rvxRHljpD__ZAlMSI8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
