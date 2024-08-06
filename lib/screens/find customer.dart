@@ -13,7 +13,12 @@ class FindCustomerScreen extends StatelessWidget {
       body: Consumer<CustomerProvider>(
         builder: (context, provider, child) {
           if (provider.customers.isEmpty) {
-            return Center(child: CircularProgressIndicator());
+            return Center(
+                child: CircularProgressIndicator(
+              color: Color.fromARGB(255, 30, 114, 194),
+            ));
+          } else if (provider.customers.isEmpty) {
+            return Center(child: Text('No customers found.'));
           }
 
           return SingleChildScrollView(
