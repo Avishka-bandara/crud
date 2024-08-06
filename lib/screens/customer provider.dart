@@ -1,33 +1,54 @@
+import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 
 class CustomerProvider with ChangeNotifier {
-  final CollectionReference _customersCollection =
-      FirebaseFirestore.instance.collection('customers');
+  final List<Map<String, dynamic>> _customers = [];
 
-  List<Map<String, dynamic>> _customers = [];
+  bool _isUpdateMode = false;
+  String _currentCustomerId = '';
 
   List<Map<String, dynamic>> get customers => _customers;
+  bool get isUpdateMode => _isUpdateMode;
+  String get currentCustomerId => _currentCustomerId;
 
-  CustomerProvider() {
-    fetchCustomers();
-  }
-
-  Future<void> fetchCustomers() async {
-    final snapshot = await _customersCollection.get();
-    _customers = snapshot.docs
-        .map((doc) => {'id': doc.id, ...doc.data() as Map<String, dynamic>})
-        .toList();
+  Future<void> addCustomer(Map<String, dynamic> customerData) async {
+    DocumentReference docRef = await FirebaseFirestore.instance.collection('customers').add(customerData);
+    customerData['id'] = docRef.id;
+    _customers.add(customerData);
     notifyListeners();
   }
 
-  Future<void> addCustomer(Map<String, dynamic> customerData) async {
-    await _customersCollection.add(customerData);
-    fetchCustomers();
+  Future<void> updateCustomer(String id, Map<String, dynamic> customerData) async {
+    await FirebaseFirestore.instance.collection('customers').doc(id).update(customerData);
+    int index = _customers.indexWhere((customer) => customer['id'] == id);
+    _customers[index] = {...customerData, 'id': id};
+    notifyListeners();
   }
 
   Future<void> deleteCustomer(String id) async {
-    await _customersCollection.doc(id).delete();
-    fetchCustomers();
+    await FirebaseFirestore.instance.collection('customers').doc(id).delete();
+    _customers.removeWhere((customer) => customer['id'] == id);
+    notifyListeners();
+  }
+
+  Future<void> fetchCustomers() async {
+    final querySnapshot = await FirebaseFirestore.instance.collection('customers').get();
+    _customers.clear();
+    for (var doc in querySnapshot.docs) {
+      _customers.add(doc.data()..['id'] = doc.id);
+    }
+    notifyListeners();
+  }
+
+  void setUpdateMode(String id) {
+    _isUpdateMode = true;
+    _currentCustomerId = id;
+    notifyListeners();
+  }
+
+  void clearUpdateMode() {
+    _isUpdateMode = false;
+    _currentCustomerId = '';
+    notifyListeners();
   }
 }
