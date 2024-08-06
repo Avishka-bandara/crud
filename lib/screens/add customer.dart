@@ -12,6 +12,8 @@ class AddCustomerScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final customerProvider = Provider.of<CustomerProvider>(context);
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Add Customer'),
@@ -69,8 +71,7 @@ class AddCustomerScreen extends StatelessWidget {
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Please enter email';
-                      } else if (!RegExp(r'^[^@]+@[^@]+\.[^@]+')
-                          .hasMatch(value)) {
+                      } else if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
                         return 'Please enter a valid email';
                       }
                       return null;
@@ -127,31 +128,44 @@ class AddCustomerScreen extends StatelessWidget {
                           'address': _addressController.text,
                         };
 
-                        await context
-                            .read<CustomerProvider>()
-                            .addCustomer(customerData);
-
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Registration successful'),
-                            duration: Duration(seconds: 2),
-                            backgroundColor: Color.fromARGB(255, 30, 114, 194),
-                            behavior: SnackBarBehavior.floating,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
+                        if (customerProvider.isUpdateMode) {
+                          await customerProvider.updateCustomer(customerProvider.currentCustomerId, customerData);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Customer updated successfully'),
+                              duration: Duration(seconds: 2),
+                              backgroundColor: Color.fromARGB(255, 30, 114, 194),
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
                             ),
-                          ),
-                        );
+                          );
+                        } else {
+                          await customerProvider.addCustomer(customerData);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Registration successful'),
+                              duration: Duration(seconds: 2),
+                              backgroundColor: Color.fromARGB(255, 30, 114, 194),
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                          );
+                        }
 
                         _firstNameController.clear();
                         _lastNameController.clear();
                         _emailController.clear();
                         _phoneController.clear();
                         _addressController.clear();
+                        customerProvider.clearUpdateMode();
                       }
                     },
                     child: Text(
-                      'Register',
+                      customerProvider.isUpdateMode ? 'Update' : 'Register',
                       style: TextStyle(color: Colors.white, fontSize: 15),
                     ),
                   ),
@@ -166,8 +180,7 @@ class AddCustomerScreen extends StatelessWidget {
                       return Column(
                         children: provider.customers.map((customer) {
                           return ListTile(
-                            title: Text(
-                                '${customer['firstName']} ${customer['lastName']}'),
+                            title: Text('${customer['firstName']} ${customer['lastName']}'),
                             subtitle: Text('Email: ${customer['email']}\n'
                                 'Phone: ${customer['phone']}\n'
                                 'Address: ${customer['address']}'),
@@ -177,6 +190,7 @@ class AddCustomerScreen extends StatelessWidget {
                               _emailController.text = customer['email'];
                               _phoneController.text = customer['phone'];
                               _addressController.text = customer['address'];
+                              provider.setUpdateMode(customer['id']);
                             },
                           );
                         }).toList(),
